@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AAC Sounds – Rw-Rechner für einschalige Porenbetonwände</title>
+  <style>
+    :root {
+      --bg: #f4f6f8;
+      --card: #ffffff;
+      --text: #1f2933;
+      --muted: #5f6b76;
+      --line: #d9e0e6;
+      --primary: #315f7d;
+      --primary-dark: #24485f;
+      --warn-bg: #fff6d8;
+      --warn-line: #d9a900;
+      --error-bg: #fdecec;
+      --error: #9f1d1d;
+      --ok-bg: #edf7f0;
+      --ok: #1f6b3a;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.45;
+    }
+
+    .page {
+      max-width: 1050px;
+      margin: 0 auto;
+      padding: 28px 18px 48px;
+    }
+
+    header {
+      margin-bottom: 22px;
+      position: relative;
+    }
+
+    .language-switch {
+      display: flex;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .lang-button {
+      padding: 8px 12px;
+      border: 1px solid var(--primary);
+      background: #fff;
+      color: var(--primary);
+    }
+
+    .lang-button.active {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .title-row { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+
+    .version-badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #fff;
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: clamp(1.7rem, 4vw, 2.5rem);
+      color: var(--primary-dark);
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      max-width: 850px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 3px 14px rgba(31, 41, 51, 0.06);
+    }
+
+    .card.full { grid-column: 1 / -1; }
+
+    h2 {
+      margin: 0 0 16px;
+      font-size: 1.2rem;
+      color: var(--primary-dark);
+    }
+
+    label {
+      display: block;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .field { margin-bottom: 15px; }
+
+    .input-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 8px;
+    }
+
+    input, select {
+      width: 100%;
+      min-height: 42px;
+      border: 1px solid #b9c4cc;
+      border-radius: 7px;
+      padding: 9px 10px;
+      font-size: 1rem;
+      background: #fff;
+      color: var(--text);
+    }
+
+    input:focus, select:focus {
+      outline: 3px solid rgba(49, 95, 125, 0.16);
+      border-color: var(--primary);
+    }
+
+    .unit {
+      min-width: 68px;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .hint {
+      margin-top: 5px;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    .notice {
+      border-left: 5px solid var(--warn-line);
+      background: var(--warn-bg);
+      padding: 12px 14px;
+      border-radius: 6px;
+      margin: 12px 0 16px;
+    }
+
+    .plaster-grid {
+      display: grid;
+      grid-template-columns: 1.35fr 0.8fr 0.8fr 0.8fr;
+      gap: 10px;
+      align-items: end;
+    }
+
+    .plaster-grid + .plaster-grid {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--line);
+    }
+
+    .small-label {
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .result-wrap {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .result-box {
+      background: #f7f9fb;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      padding: 14px;
+      min-height: 105px;
+    }
+
+    .result-box strong {
+      display: block;
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin-bottom: 7px;
+    }
+
+    .value {
+      font-size: 1.45rem;
+      font-weight: 800;
+      color: var(--primary-dark);
+    }
+
+    .formula {
+      font-family: "Courier New", monospace;
+      font-size: 0.92rem;
+      overflow-wrap: anywhere;
+    }
+
+    .status {
+      margin-top: 14px;
+      padding: 12px 14px;
+      border-radius: 7px;
+      display: none;
+    }
+
+    .status.error {
+      display: block;
+      background: var(--error-bg);
+      color: var(--error);
+      border: 1px solid #efbcbc;
+    }
+
+    .status.ok {
+      display: block;
+      background: var(--ok-bg);
+      color: var(--ok);
+      border: 1px solid #b9ddc5;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 7px;
+      padding: 11px 16px;
+      font-size: 0.98rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .primary:hover { background: var(--primary-dark); }
+
+    .secondary {
+      background: #e7edf1;
+      color: var(--text);
+    }
+
+    details {
+      margin-top: 18px;
+      border-top: 1px solid var(--line);
+      padding-top: 14px;
+    }
+
+    summary {
+      cursor: pointer;
+      font-weight: 700;
+      color: var(--primary-dark);
+    }
+
+    footer {
+      margin-top: 22px;
+      color: var(--muted);
+      font-size: 0.86rem;
+    }
+
+    @media (max-width: 800px) {
+      .grid { grid-template-columns: 1fr; }
+      .card.full { grid-column: auto; }
+      .result-wrap { grid-template-columns: 1fr 1fr; }
+      .plaster-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 520px) {
+      .result-wrap { grid-template-columns: 1fr; }
+      .plaster-grid { grid-template-columns: 1fr; }
+      .unit { min-width: auto; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header>
+      <div class="title-row"><h1>AAC Sounds</h1><span class="version-badge">Version 1.2.0</span></div>
+      <p class="subtitle" data-i18n="subtitle"></p>
+      <div class="language-switch" aria-label="Language selection">
+        <button class="lang-button active" id="langDe" type="button">Deutsch</button>
+        <button class="lang-button" id="langEn" type="button">English</button>
+      </div>
+    </header>
+
+    <section class="grid">
+      <div class="card">
+        <h2 data-i18n="wallSection"></h2>
+        <div class="field">
+          <label for="wallThickness" data-i18n="wallThickness"></label>
+          <div class="input-row"><input id="wallThickness" type="text" inputmode="decimal" value="240" /><span class="unit">mm</span></div>
+        </div>
+        <div class="field">
+          <label for="grossDensity" data-i18n="grossDensity"></label>
+          <div class="input-row"><input id="grossDensity" type="text" inputmode="decimal" value="500" /><span class="unit">kg/m³</span></div>
+        </div>
+        <div class="notice" data-i18n-html="densityNotice"></div>
+        <div class="field">
+          <label for="densityDeduction" data-i18n="densityDeduction"></label>
+          <div class="input-row"><input id="densityDeduction" type="text" inputmode="decimal" value="50" /><span class="unit">kg/m³</span></div>
+          <div class="hint" data-i18n="effectiveDensityHint"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2 data-i18n="additionalLoadSection"></h2>
+        <div class="field">
+          <label for="directPlasterLoad" data-i18n="directLoad"></label>
+          <div class="input-row"><input id="directPlasterLoad" type="text" inputmode="decimal" value="0" /><span class="unit">kg/m²</span></div>
+          <div class="hint" data-i18n="directLoadHint"></div>
+        </div>
+
+        <h2 style="margin-top:22px" data-i18n="plasterCalculator"></h2>
+        <p class="hint" data-i18n-html="plasterFormulaHint"></p>
+
+        <div class="plaster-grid">
+          <div><div class="small-label" data-i18n="plasterInside"></div><select id="plasterType1"></select></div>
+          <div><div class="small-label" data-i18n="thicknessMm"></div><input id="plasterThickness1" type="text" inputmode="decimal" value="10" /></div>
+          <div><div class="small-label">ρ [kg/m³]</div><input id="plasterDensity1" type="text" inputmode="decimal" value="0" disabled /></div>
+          <div><div class="small-label">m′ [kg/m²]</div><input id="plasterMass1" type="text" value="0,00" disabled /></div>
+        </div>
+
+        <div class="plaster-grid">
+          <div><div class="small-label" data-i18n="plasterOutside"></div><select id="plasterType2"></select></div>
+          <div><div class="small-label" data-i18n="thicknessMm"></div><input id="plasterThickness2" type="text" inputmode="decimal" value="15" /></div>
+          <div><div class="small-label">ρ [kg/m³]</div><input id="plasterDensity2" type="text" inputmode="decimal" value="1600" disabled /></div>
+          <div><div class="small-label">m′ [kg/m²]</div><input id="plasterMass2" type="text" value="24,00" disabled /></div>
+        </div>
+      </div>
+
+      <div class="card full">
+        <h2 data-i18n="edgeCorrectionSection"></h2>
+        <div class="field">
+          <label for="decoupledEdges" data-i18n="decoupledEdges"></label>
+          <select id="decoupledEdges">
+            <option value="0" data-i18n="edgesNone"></option>
+            <option value="23" data-i18n="edgesTwoThree"></option>
+            <option value="4" data-i18n="edgesFour"></option>
+          </select>
+          <div class="hint" data-i18n-html="edgeCorrectionHint"></div>
+        </div>
+        <div class="notice" data-i18n-html="decouplingRoomNote"></div>
+      </div>
+
+      <div class="card full">
+        <h2 data-i18n="resultSection"></h2>
+        <div class="result-wrap">
+          <div class="result-box"><strong data-i18n="effectiveDensity"></strong><div class="value" id="effectiveDensityOutput"></div></div>
+          <div class="result-box"><strong data-i18n="aacMass"></strong><div class="value" id="aacMassOutput"></div></div>
+          <div class="result-box"><strong data-i18n-html="totalMass"></strong><div class="value" id="totalMassOutput"></div></div>
+          <div class="result-box"><strong data-i18n-html="soundReductionBase"></strong><div class="value" id="rwBaseOutput"></div></div>
+          <div class="result-box"><strong data-i18n-html="edgeCorrection"></strong><div class="value" id="edgeCorrectionOutput"></div></div>
+          <div class="result-box"><strong data-i18n-html="soundReductionCorrected"></strong><div class="value" id="rwOutput"></div></div>
+        </div>
+        <div class="status" id="statusBox"></div>
+        <div class="actions">
+          <button class="primary" id="calculateButton" type="button" data-i18n="recalculate"></button>
+          <button class="secondary" id="resetButton" type="button" data-i18n="reset"></button>
+          <button class="secondary" id="printButton" type="button" data-i18n="print"></button>
+        </div>
+        <details>
+          <summary data-i18n="showCalculation"></summary>
+          <p id="calculationText" class="formula"></p>
+          <p data-i18n-html="validityRanges"></p>
+        </details>
+      </div>
+    </section>
+    <footer data-i18n="footerNote"></footer>
+  </main>
+
+  <script>
+    "use strict";
+    const $ = (id) => document.getElementById(id);
+    window.addEventListener("error", (event) => {
+      const box = document.getElementById("statusBox");
+      if (box) {
+        box.textContent = "Technical error / Technischer Fehler: " + event.message;
+        box.className = "status error";
+      }
+    });
+    const APP_VERSION = "1.2.0";
+    let currentLang = "de";
+
+    const translations = {
+      de: {
+        pageTitle: "AAC Sounds – Rw-Rechner für einschalige Porenbetonwände",
+        subtitle: "Berechnung des bewerteten Schalldämm-Maßes Rw für einschalige Porenbetonwände anhand der flächenbezogenen Gesamtmasse.",
+        wallSection: "1. Porenbetonwand", wallThickness: "Wanddicke", grossDensity: "Rohdichte des Porenbetons",
+        densityNotice: "Für die Ermittlung der flächenbezogenen Masse wird die eingegebene Rohdichte standardmäßig um <strong>50 kg/m³</strong> vermindert. Der Abschlag kann nachfolgend geändert werden.",
+        densityDeduction: "Abschlag von der Rohdichte", effectiveDensityHint: "Wirksame Rohdichte = eingegebene Rohdichte − Abschlag.",
+        additionalLoadSection: "2. Zusätzliche Flächenlast", directLoad: "Direkt eingegebene zusätzliche Flächenlast",
+        directLoadHint: "Hier können bekannte Flächenlasten unmittelbar eingetragen werden.", plasterCalculator: "Putzrechner",
+        plasterFormulaHint: "m′<sub>Putz</sub> = d<sub>Putz</sub> × ρ<sub>Putz</sub>. Die berechneten Putzmassen werden zusätzlich zur direkten Flächenlast angesetzt.",
+        plasterInside: "Putz innen", plasterOutside: "Putz außen", thicknessMm: "Dicke [mm]",
+        edgeCorrectionSection: "3. Korrektur bei elastisch oder vollständig entkoppelten Kanten",
+        decoupledEdges: "Anzahl der entkoppelten Kanten", edgesNone: "Keine Korrektur / keine entkoppelten Kanten", edgesTwoThree: "2 bis 3 entkoppelte Kanten", edgesFour: "4 entkoppelte Kanten",
+        edgeCorrectionHint: "Der Korrekturwert K<sub>E</sub> wird abhängig von der flächenbezogenen Gesamtmasse angesetzt: bis einschließlich 150 kg/m² mit 2 dB bzw. 4 dB, über 150 kg/m² mit 3 dB bzw. 6 dB.",
+        decouplingRoomNote: "<strong>Hinweis zur Raumbetrachtung:</strong> Der Korrekturwert vermindert zwar das Direktschalldämm-Maß des Bauteils. Eine elastische oder vollständige Entkopplung kann bei der Betrachtung zwischen Räumen dennoch vorteilhaft sein, weil sie die Flankenübertragung über angrenzende Bauteile reduziert.",
+        resultSection: "4. Ergebnis",
+        effectiveDensity: "Wirksame Rohdichte", aacMass: "Flächenmasse AAC", totalMass: "Gesamtmasse m′<sub>ges</sub>",
+        soundReductionBase: "R<sub>w</sub> vor Korrektur", edgeCorrection: "Korrekturwert K<sub>E</sub>", soundReductionCorrected: "R<sub>w</sub> nach Korrektur", recalculate: "Neu berechnen", reset: "Eingaben zurücksetzen", print: "Drucken / als PDF speichern",
+        showCalculation: "Rechenweg anzeigen",
+        validityRanges: "<strong>Gültigkeitsbereiche:</strong><br>50 kg/m² ≤ m′<sub>ges</sub> &lt; 150 kg/m²: R<sub>w</sub> = 32,6 · lg(m′<sub>ges</sub> / 1 kg/m²) − 22,5<br>150 kg/m² ≤ m′<sub>ges</sub> ≤ 300 kg/m²: R<sub>w</sub> = 26,1 · lg(m′<sub>ges</sub> / 1 kg/m²) − 8,4",
+        footerNote: "Version 1.2.0 · Hinweis: Der Rechner bildet die vorgegebenen Gleichungen für einschalige AAC-/Porenbetonwände sowie die Korrekturwerte K_E für entkoppelte Kanten ab. Ergebnisse außerhalb des Massenbereichs von 50 bis 300 kg/m² werden nicht extrapoliert.",
+        noPlaster: "Kein Putz", gypsum: "Gips-/Dünnlagenputz", lime: "Kalk-/Kalkzementputz", lightweight: "Leichtputz", insulating: "Wärmedämmputz", custom: "Eigene Rohdichte",
+        invalidNumbers: "Bitte nur gültige Zahlen eingeben.", invalidPositive: "Wanddicke und Rohdichte müssen größer als null sein. Abschlag und zusätzliche Flächenlast dürfen nicht negativ sein.",
+        deductionTooHigh: "Der Rohdichteabschlag ist zu groß. Die wirksame Rohdichte muss größer als null bleiben.", outOfRange: "Die flächenbezogene Gesamtmasse liegt außerhalb des geregelten Bereichs von 50 bis 300 kg/m². Es wird kein Rw-Wert extrapoliert.",
+        calculationOk: "Berechnung innerhalb des vorgesehenen Massenbereichs durchgeführt.", effectiveDensityCalc: "Wirksame Rohdichte"
+      },
+      en: {
+        pageTitle: "AAC Sounds – Rw calculator for single-leaf AAC walls",
+        subtitle: "Calculation of the weighted sound reduction index Rw for single-leaf autoclaved aerated concrete walls based on the total mass per unit area.",
+        wallSection: "1. AAC wall", wallThickness: "Wall thickness", grossDensity: "Gross density of AAC",
+        densityNotice: "For determining the mass per unit area, the entered gross density is reduced by <strong>50 kg/m³</strong> by default. The deduction can be changed below.",
+        densityDeduction: "Deduction from gross density", effectiveDensityHint: "Effective density = entered gross density − deduction.",
+        additionalLoadSection: "2. Additional surface load", directLoad: "Directly entered additional surface load",
+        directLoadHint: "Known additional surface loads can be entered directly here.", plasterCalculator: "Plaster calculator",
+        plasterFormulaHint: "m′<sub>plaster</sub> = d<sub>plaster</sub> × ρ<sub>plaster</sub>. The calculated plaster masses are added to the directly entered surface load.",
+        plasterInside: "Internal plaster", plasterOutside: "External plaster", thicknessMm: "Thickness [mm]",
+        edgeCorrectionSection: "3. Correction for elastically or fully decoupled edges",
+        decoupledEdges: "Number of decoupled edges", edgesNone: "No correction / no decoupled edges", edgesTwoThree: "2 to 3 decoupled edges", edgesFour: "4 decoupled edges",
+        edgeCorrectionHint: "The correction value K<sub>E</sub> depends on the total mass per unit area: up to and including 150 kg/m², 2 dB or 4 dB; above 150 kg/m², 3 dB or 6 dB.",
+        decouplingRoomNote: "<strong>Note for room-to-room assessment:</strong> Although the correction value reduces the direct sound reduction index of the element, elastic or full decoupling can still be beneficial in a room assessment because it reduces flanking transmission through adjoining building elements.",
+        resultSection: "4. Result",
+        effectiveDensity: "Effective density", aacMass: "AAC mass per unit area", totalMass: "Total mass m′<sub>tot</sub>",
+        soundReductionBase: "R<sub>w</sub> before correction", edgeCorrection: "Correction value K<sub>E</sub>", soundReductionCorrected: "R<sub>w</sub> after correction", recalculate: "Recalculate", reset: "Reset inputs", print: "Print / save as PDF",
+        showCalculation: "Show calculation",
+        validityRanges: "<strong>Validity ranges:</strong><br>50 kg/m² ≤ m′<sub>tot</sub> &lt; 150 kg/m²: R<sub>w</sub> = 32.6 · lg(m′<sub>tot</sub> / 1 kg/m²) − 22.5<br>150 kg/m² ≤ m′<sub>tot</sub> ≤ 300 kg/m²: R<sub>w</sub> = 26.1 · lg(m′<sub>tot</sub> / 1 kg/m²) − 8.4",
+        footerNote: "Version 1.2.0 · Note: This calculator applies the specified equations for single-leaf AAC walls and the K_E correction values for decoupled edges. Results outside the mass range of 50 to 300 kg/m² are not extrapolated.",
+        noPlaster: "No plaster", gypsum: "Gypsum/thin-layer plaster", lime: "Lime/lime-cement plaster", lightweight: "Lightweight plaster", insulating: "Thermal-insulating plaster", custom: "Custom density",
+        invalidNumbers: "Please enter valid numbers only.", invalidPositive: "Wall thickness and gross density must be greater than zero. The deduction and additional surface load must not be negative.",
+        deductionTooHigh: "The density deduction is too high. The effective density must remain greater than zero.", outOfRange: "The total mass per unit area is outside the defined range of 50 to 300 kg/m². No Rw value is extrapolated.",
+        calculationOk: "Calculation completed within the specified mass range.", effectiveDensityCalc: "Effective density"
+      }
+    };
+
+    function t(key){ return translations[currentLang][key]; }
+    function parseNumber(value){
+      if(typeof value!=="string") return Number(value);
+      let cleaned=value.trim().replace(/\s/g,"");
+      if(currentLang==="de") cleaned=cleaned.replace(/\./g,"").replace(",", ".");
+      else cleaned=cleaned.replace(/,/g,"");
+      return cleaned===""?0:Number(cleaned);
+    }
+    function formatNumber(value, decimals=1){
+      return new Intl.NumberFormat(currentLang==="de"?"de-DE":"en-GB",{minimumFractionDigits:decimals,maximumFractionDigits:decimals}).format(value);
+    }
+
+    function populatePlasterOptions(index, selectedValue){
+      const sel=$("plasterType"+index);
+      const options=[
+        ["0",t("noPlaster")],["1000",t("gypsum")+" – 1,000 kg/m³"],["1600",t("lime")+" – 1,600 kg/m³"],
+        ["900",t("lightweight")+" – 900 kg/m³"],["250",t("insulating")+" – 250 kg/m³"],["custom",t("custom")]
+      ];
+      sel.innerHTML=options.map(([v,l])=>`<option value="${v}">${l}</option>`).join("");
+      sel.value=selectedValue;
+    }
+
+    function setLanguage(lang){
+      const selected1=$("plasterType1").value||"0";
+      const selected2=$("plasterType2").value||"1600";
+      currentLang=lang; document.documentElement.lang=lang; document.title=t("pageTitle");
+      document.querySelectorAll("[data-i18n]").forEach(el=>el.textContent=t(el.dataset.i18n));
+      document.querySelectorAll("[data-i18n-html]").forEach(el=>el.innerHTML=t(el.dataset.i18nHtml));
+      populatePlasterOptions(1,selected1); populatePlasterOptions(2,selected2);
+      $("langDe").classList.toggle("active",lang==="de"); $("langEn").classList.toggle("active",lang==="en");
+      calculate();
+    }
+
+    function syncPlasterDensity(index){
+      const type=$("plasterType"+index), density=$("plasterDensity"+index);
+      if(type.value==="custom"){ density.disabled=false; if(parseNumber(density.value)===0) density.value="1000"; }
+      else { density.disabled=true; density.value=type.value; }
+    }
+    function plasterMass(index){
+      syncPlasterDensity(index);
+      const mass=Math.max(0,parseNumber($("plasterThickness"+index).value))/1000*Math.max(0,parseNumber($("plasterDensity"+index).value));
+      $("plasterMass"+index).value=formatNumber(mass,2); return mass;
+    }
+    function showStatus(message,type){ const box=$("statusBox"); box.textContent=message; box.className="status "+type; }
+
+    function getEdgeCorrection(totalMass){
+      const edges=$("decoupledEdges").value;
+      if(edges==="0") return 0;
+      if(totalMass<=150) return edges==="23" ? 2 : 4;
+      return edges==="23" ? 3 : 6;
+    }
+
+    function calculate(){
+      const thicknessMm=parseNumber($("wallThickness").value), grossDensity=parseNumber($("grossDensity").value), deduction=parseNumber($("densityDeduction").value), directLoad=parseNumber($("directPlasterLoad").value);
+      if([thicknessMm,grossDensity,deduction,directLoad].some(v=>!Number.isFinite(v))){showStatus(t("invalidNumbers"),"error");return;}
+      if(thicknessMm<=0||grossDensity<=0||deduction<0||directLoad<0){showStatus(t("invalidPositive"),"error");return;}
+      const effectiveDensity=grossDensity-deduction;
+      if(effectiveDensity<=0){showStatus(t("deductionTooHigh"),"error");return;}
+      const p1=plasterMass(1),p2=plasterMass(2),aacMass=thicknessMm/1000*effectiveDensity,totalMass=aacMass+directLoad+p1+p2;
+      let rw=null,formulaName="";
+      if(totalMass>=50&&totalMass<150){rw=32.6*Math.log10(totalMass)-22.5;formulaName=currentLang==="de"?"Rw = 32,6 · lg(m′ges / m′0) − 22,5":"Rw = 32.6 · lg(m′tot / m′0) − 22.5";}
+      else if(totalMass>=150&&totalMass<=300){rw=26.1*Math.log10(totalMass)-8.4;formulaName=currentLang==="de"?"Rw = 26,1 · lg(m′ges / m′0) − 8,4":"Rw = 26.1 · lg(m′tot / m′0) − 8.4";}
+      $("effectiveDensityOutput").textContent=formatNumber(effectiveDensity,1)+" kg/m³";
+      $("aacMassOutput").textContent=formatNumber(aacMass,1)+" kg/m²"; $("totalMassOutput").textContent=formatNumber(totalMass,1)+" kg/m²";
+      const aacLabel="m′AAC", totalLabel=currentLang==="de"?"m′ges":"m′tot";
+      const lines=[`${t("effectiveDensityCalc")} = ${formatNumber(grossDensity,1)} − ${formatNumber(deduction,1)} = ${formatNumber(effectiveDensity,1)} kg/m³`,`${aacLabel} = ${formatNumber(thicknessMm/1000,3)} m × ${formatNumber(effectiveDensity,1)} kg/m³ = ${formatNumber(aacMass,2)} kg/m²`,`${totalLabel} = ${formatNumber(aacMass,2)} + ${formatNumber(directLoad,2)} + ${formatNumber(p1,2)} + ${formatNumber(p2,2)} = ${formatNumber(totalMass,2)} kg/m²`];
+      if(rw===null){
+        $("rwBaseOutput").textContent="–";
+        $("edgeCorrectionOutput").textContent="–";
+        $("rwOutput").textContent="–";
+        $("calculationText").textContent=lines.join("\n");
+        showStatus(t("outOfRange"),"error");
+      } else {
+        const rwRoundedDown=Math.floor(rw);
+        const edgeCorrection=getEdgeCorrection(totalMass);
+        const correctedRw=rwRoundedDown-edgeCorrection;
+        $("rwBaseOutput").textContent=formatNumber(rwRoundedDown,0)+" dB";
+        $("edgeCorrectionOutput").textContent=edgeCorrection===0 ? "0 dB" : "−"+formatNumber(edgeCorrection,0)+" dB";
+        $("rwOutput").textContent=formatNumber(correctedRw,0)+" dB";
+        lines.push(formulaName+" = "+formatNumber(rw,2)+" dB → "+formatNumber(rwRoundedDown,0)+" dB");
+        lines.push((currentLang==="de" ? "Korrektur entkoppelte Kanten: K_E = " : "Decoupled-edge correction: K_E = ")+formatNumber(edgeCorrection,0)+" dB");
+        lines.push((currentLang==="de" ? "Korrigierter Wert: " : "Corrected value: ")+formatNumber(rwRoundedDown,0)+" − "+formatNumber(edgeCorrection,0)+" = "+formatNumber(correctedRw,0)+" dB");
+        $("calculationText").textContent=lines.join("\n");
+        showStatus(t("calculationOk"),"ok");
+      }
+    }
+
+    function resetForm(){
+      $("wallThickness").value="240";$("grossDensity").value="500";$("densityDeduction").value="50";$("directPlasterLoad").value="0";
+      $("plasterType1").value="0";$("plasterThickness1").value="10";$("plasterDensity1").value="0";
+      $("plasterType2").value="1600";$("plasterThickness2").value="15";$("plasterDensity2").value="1600";$("decoupledEdges").value="0";calculate();
+    }
+
+    populatePlasterOptions(1,"0"); populatePlasterOptions(2,"1600");
+    [1,2].forEach(index=>{ $("plasterType"+index).addEventListener("change",()=>{syncPlasterDensity(index);calculate();}); $("plasterThickness"+index).addEventListener("input",calculate); $("plasterDensity"+index).addEventListener("input",calculate); });
+    ["wallThickness","grossDensity","densityDeduction","directPlasterLoad"].forEach(id=>$(id).addEventListener("input",calculate));
+    $("decoupledEdges").addEventListener("change",calculate);
+    $("calculateButton").addEventListener("click",calculate);$("resetButton").addEventListener("click",resetForm);$("printButton").addEventListener("click",()=>window.print());
+    $("langDe").addEventListener("click",()=>setLanguage("de"));$("langEn").addEventListener("click",()=>setLanguage("en"));
+    setLanguage("de");
+  </script>
+</body>
+</html>
